@@ -1,6 +1,8 @@
 import os
 import gspread
 import logging
+import pandas as pd
+
 from google.oauth2.service_account import Credentials
 
 # Setup logging configuration
@@ -124,20 +126,6 @@ def select_worksheet(spreadsheet):
         return None
 
 
-def display_worksheet_data(worksheet):
-    """Display the contents of the selected worksheet."""
-    try:
-        data = worksheet.get_all_values()
-        if data:
-            print("Worksheet Data:")
-            for row in data:
-                print(row)
-        else:
-            print("The worksheet is empty.")
-    except Exception as e:
-        logger.exception("Failed to retrieve worksheet data: %s", str(e))
-
-
 def update_student_grade(worksheet):
     """Update a student's grade for a specific assignment."""
     student_id = input("Enter the Student ID: ")
@@ -203,6 +191,29 @@ def calculate_attendance_percentage(worksheet, total_classes):
     print("Attendance percentages calculated and updated.")
 
 
+def display_worksheet_data_with_pandas(worksheet):
+    """
+    Display the contents of the selected worksheet using Pandas.
+    Uses get_all_records to treat the first row as headers.
+    """
+    try:
+        # Get all records from the worksheet
+        data = worksheet.get_all_records()
+
+        if data:
+            # Create a Pandas DataFrame from the data
+            # (headers already included)
+            df = pd.DataFrame(data)
+            print("\nWorksheet Data (using Pandas and get_all_records):")
+            print(df)  # Display the DataFrame in a readable format
+        else:
+            print("The worksheet is empty.")
+    except Exception as e:
+        logger.exception(
+            "Failed to retrieve or display worksheet data: %s", str(e)
+        )
+
+
 def display_menu():
     """Display a menu for user interaction."""
     print("\n--- Student Grades and Attendance Tracker Menu ---")
@@ -245,7 +256,7 @@ def main():
             current_worksheet = select_worksheet(spreadsheet)
             if current_worksheet:
                 print(f"Current worksheet set to: {current_worksheet.title}")
-                display_worksheet_data(current_worksheet)
+                display_worksheet_data_with_pandas(current_worksheet)
         elif choice == "4" and current_worksheet:
             update_student_grade(current_worksheet)
         elif choice == "5" and current_worksheet:

@@ -1,1 +1,2 @@
-gspread
+gspread==6.1.3
+pandas==2.2.3
