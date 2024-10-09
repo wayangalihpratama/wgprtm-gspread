@@ -138,13 +138,82 @@ def display_worksheet_data(worksheet):
         logger.exception("Failed to retrieve worksheet data: %s", str(e))
 
 
+def update_student_grade(worksheet):
+    """Update a student's grade for a specific assignment."""
+    student_id = input("Enter the Student ID: ")
+    grade_column = int(
+        input(
+            "Enter column number to update grade (e.g., 3 for Assignment 1): "
+        )
+    )
+    new_grade = input("Enter the new grade: ")
+
+    try:
+        cell = worksheet.find(student_id)
+        worksheet.update_cell(cell.row, grade_column, new_grade)
+        print(f"Updated grade for Student ID {student_id} to {new_grade}.")
+    except Exception as e:
+        logger.exception(
+            f"Failed to update grade for {student_id}: %s", str(e)
+        )
+
+
+def update_student_attendance(worksheet):
+    """Update attendance for a student."""
+    student_id = input("Enter the Student ID: ")
+    try:
+        cell = worksheet.find(student_id)
+        attendance_cell = worksheet.cell(
+            cell.row, 7
+        )  # Assume column 7 is attendance count
+        attendance_count = int(attendance_cell.value) + 1
+        worksheet.update_cell(cell.row, 7, attendance_count)
+        print(f"Updated attendance for Student ID {student_id}.")
+    except Exception as e:
+        logger.exception(
+            f"Failed to update attendance for {student_id}: %s", str(e)
+        )
+
+
+def calculate_final_grades(worksheet):
+    """Calculate final grades for all students."""
+    data = worksheet.get_all_records()
+    for i, student in enumerate(data):
+        # Assuming weights: 40% Exam, 30% Assignment, 30% Quiz
+        final_grade = (
+            student["Assignment 1"] * 0.3
+            + student["Quiz 1"] * 0.3
+            + student["Exam 1"] * 0.4
+        )
+        worksheet.update_cell(
+            i + 2, 6, round(final_grade, 2)
+        )  # Column 6 is Final Grade
+    print("Final grades calculated and updated.")
+
+
+def calculate_attendance_percentage(worksheet, total_classes):
+    """Calculate attendance percentage for all students."""
+    data = worksheet.get_all_records()
+    for i, student in enumerate(data):
+        attendance_count = student["Attendance Count"]
+        attendance_percentage = (attendance_count / total_classes) * 100
+        worksheet.update_cell(
+            i + 2, 8, round(attendance_percentage, 2)
+        )  # Column 8 is Attendance Percentage
+    print("Attendance percentages calculated and updated.")
+
+
 def display_menu():
     """Display a menu for user interaction."""
-    print("\n--- Google Sheets Menu ---")
+    print("\n--- Student Grades and Attendance Tracker Menu ---")
     print("1. List Worksheets")
     print("2. Create a New Worksheet")
     print("3. Select a Worksheet")
-    print("4. Exit")
+    print("4. Update a Student's Grade")
+    print("5. Update a Student's Attendance")
+    print("6. Calculate Final Grades")
+    print("7. Calculate Attendance Percentage")
+    print("8. Exit")
 
 
 def main():
@@ -155,11 +224,14 @@ def main():
         gc, spreadsheet_name, share_to_email
     )
     current_worksheet = None
+    total_classes = (
+        10  # Set total number of classes for attendance calculation
+    )
 
     while True:
         display_menu()
         try:
-            choice = input("Select an option (1/2/3/4): ")
+            choice = input("Select an option (1/2/3/4/5/6/7/8): ")
         except EOFError:
             print("Input stream closed. Exiting program.")
             break
@@ -174,11 +246,19 @@ def main():
             if current_worksheet:
                 print(f"Current worksheet set to: {current_worksheet.title}")
                 display_worksheet_data(current_worksheet)
-        elif choice == "4":
+        elif choice == "4" and current_worksheet:
+            update_student_grade(current_worksheet)
+        elif choice == "5" and current_worksheet:
+            update_student_attendance(current_worksheet)
+        elif choice == "6" and current_worksheet:
+            calculate_final_grades(current_worksheet)
+        elif choice == "7" and current_worksheet:
+            calculate_attendance_percentage(current_worksheet, total_classes)
+        elif choice == "8":
             print("Exiting program. Goodbye!")
             break
         else:
-            print("Invalid option. Please try again.")
+            print("Invalid option or no worksheet selected. Please try again.")
 
 
 # Run the main function
