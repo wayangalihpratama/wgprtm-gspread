@@ -17,6 +17,17 @@ docker compose up
 ```
 
 
+## Interact with the application
+
+```bash
+docker compose exec app /bin/bash
+```
+
+```bash
+python app.py
+```
+
+
 ## Stop the application
 
 ```bash

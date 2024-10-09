@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 80
 
 # Set the default command to run the Python script
-CMD ["python", "app.py"]
+CMD ["tail", "-f", "/dev/null"]
